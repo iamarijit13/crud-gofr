@@ -1,10 +1,10 @@
-package store
+package employee
 
 import (
 	"context"
 	"testing"
 
-	"employee-crud/model"
+	"employee-crud/models"
 	"developer.zopsmart.com/go/gofr/pkg/gofr"
 
 	"github.com/stretchr/testify/assert"
@@ -32,11 +32,11 @@ func createTable(app *gofr.Gofr) {
 func testAddEmployee(t *testing.T, app *gofr.Gofr) {
 	tests := []struct {
 		desc     string
-		employee model.Employee
+		employee models.Employee
 		err      error
 	}{
-		{"create succuss test #1", model.Employee{Name: "Test123", Email: "example@example.com", CTC: 0.0}, nil},
-		{"create succuss test #2", model.Employee{Name: "Test234", Email: "example2@example.com", CTC: 1.0}, nil},
+		{"create succuss test #1", models.Employee{Name: "Test123", Email: "example@example.com", CTC: 0.0}, nil},
+		{"create succuss test #2", models.Employee{Name: "Test234", Email: "example2@example.com", CTC: 1.0}, nil},
 	}
 
 	for i, tc := range tests {

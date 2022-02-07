@@ -1,4 +1,4 @@
-package handler
+package employee
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"employee-crud/model"
+	"employee-crud/models"
 	"developer.zopsmart.com/go/gofr/pkg/errors"
 	"developer.zopsmart.com/go/gofr/pkg/gofr"
 	"developer.zopsmart.com/go/gofr/pkg/gofr/request"
@@ -18,8 +18,8 @@ import (
 
 type mockStore struct {}
 
-func (m mockStore) Find(c *gofr.Context) ([]model.Employee, error){
-	p := c.Param("mock")
+func (m mockStore) GetAll(ctx *gofr.Context) ([]models.Employee, error){
+	p := ctx.Param("mock")
 
 	if p == "success" {
 		return nil, nil
@@ -28,37 +28,37 @@ func (m mockStore) Find(c *gofr.Context) ([]model.Employee, error){
 	return nil, errors.Error("Error fetching employees.")
 }
 
-func (m mockStore) FindByID(c *gofr.Context, id int) (model.Employee, error) {
+func (m mockStore) GetByID(ctx *gofr.Context, id int) (models.Employee, error) {
 	if (id == 1) {
-		return model.Employee{ID: 1, Name: "First_Name Second_Name", Email: "example@exaple.com", CTC: 0.0}, nil
+		return models.Employee{ID: 1, Name: "First_Name Second_Name", Email: "example@exaple.com", CTC: 0.0}, nil
 	}
 
-	return model.Employee{}, errors.EntityNotFound{Entity: "employee", ID: fmt.Sprint(id)}
+	return models.Employee{}, errors.EntityNotFound{Entity: "employee", ID: fmt.Sprint(id)}
 }
 
-func (m mockStore) Update(c *gofr.Context, customer model.Employee) (model.Employee, error) {
+func (m mockStore) Update(ctx *gofr.Context, customer models.Employee) (models.Employee, error) {
 	if customer.Name == "First_Name Second_Name" {
-		return model.Employee{}, nil
+		return models.Employee{}, nil
 	}
 
-	return model.Employee{}, errors.Error("error updating employee.")
+	return models.Employee{}, errors.Error("error updating employee.")
 }
 
-func (m mockStore) Create(c *gofr.Context, emp model.Employee) (model.Employee, error) {
+func (m mockStore) Create(ctx *gofr.Context, emp models.Employee) (models.Employee, error) {
 	switch emp.Name {
 	case "First_Name Second_Name":
-		return model.Employee{ID: 1, Name: emp.Name, Email: emp.Email, CTC: emp.CTC}, nil
+		return models.Employee{ID: 1, Name: emp.Name, Email: emp.Email, CTC: emp.CTC}, nil
 	case "mock body error":
-		return model.Employee{}, errors.InvalidParam{Param: []string{"body"}}
+		return models.Employee{}, errors.InvalidParam{Param: []string{"body"}}
 	case `{"id":1}`:
-		return model.Employee{}, errors.InvalidParam{Param: []string{"id"}}
+		return models.Employee{}, errors.InvalidParam{Param: []string{"id"}}
 	}
 
-	return model.Employee{}, errors.Error("error adding new employee")
+	return models.Employee{}, errors.Error("error adding new employee")
 }
 
-func (m mockStore) Delete(c *gofr.Context, id int) error {
-	if c.PathParam("id") == "123" {
+func (m mockStore) Delete(ctx *gofr.Context, id int) error {
+	if ctx.PathParam("id") == "123" {
 		return nil
 	}
 
@@ -141,7 +141,7 @@ func TestModel_GetCustomerById(t *testing.T) {
 		resp interface{}
 		err  error
 	}{
-		{"get by id succuss", "1", model.Employee{ID: 1, Name: "First_Name Second_Name", Email: "example@exaple.com", CTC: 0.0}, nil},
+		{"get by id succuss", "1", models.Employee{ID: 1, Name: "First_Name Second_Name", Email: "example@exaple.com", CTC: 0.0}, nil},
 		{"invalid id", "absd123", nil, errors.InvalidParam{Param: []string{"id"}}},
 		{"missing id", "", nil, errors.MissingParam{Param: []string{"id"}}},
 		{"id not found", "2", nil, errors.EntityNotFound{Entity: "Employee", ID: "2"}},
@@ -160,7 +160,7 @@ func TestModel_GetCustomerById(t *testing.T) {
 			"id": tc.id,
 		})
 
-		resp, err := h.FindByID(ctx)
+		resp, err := h.GetByID(ctx)
 		assert.Equal(t, tc.err, err, "TEST[%d], failed.\n%s", i, tc.desc)
 
 		assert.Equal(t, tc.resp, resp, "TEST[%d], failed.\n%s", i, tc.desc)
@@ -223,7 +223,7 @@ func TestModel_GetCustomers(t *testing.T) {
 		res := responder.NewContextualResponder(w, r)
 		ctx := gofr.NewContext(res, req, app)
 
-		_, err := h.Find(ctx)
+		_, err := h.GetAll(ctx)
 		assert.Equal(t, tc.err, err, "TEST[%d], failed.\n%s", i, tc.desc)
 	}
 }
